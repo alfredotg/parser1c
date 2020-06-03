@@ -10,6 +10,7 @@ class BulkWriter
     public $on_save;
     protected int $chunk_size;
     protected array $models = [];
+    protected array $prepared = [];
 
     function __construct(int $chunk_size)
     {
@@ -33,13 +34,29 @@ class BulkWriter
         if(count($this->models) == 0)
             return;
         list($sql, $bindigs) = $this->prepare();
-        DB::statement($sql, $bindigs);
+        $this->execute($sql, $bindigs);
         if($this->on_save !== null)
         {
             $on_save = $this->on_save;
             $on_save(count($this->models));
         }
         $this->models = [];
+    }
+
+    protected function execute(string $sql, array $bindigs): void
+    {
+        DB::statement($sql, $bindigs);
+        //$pdo = DB::connection()->getPdo();
+        //if(!isset($this->prepared[$sql]))
+        //{
+        //    $sttm = $pdo->prepare($sql);
+        //    if(!$sttm)
+        //        throw new \Exception($pdo->errorInfo());
+        //    $this->prepared[$sql] = $sttm;
+        //}
+        //$sttm = $this->prepared[$sql];
+        //if(!$sttm->execute($bindigs))
+        //    throw new \Exception($sttm->errorInfo());
     }
 
     public function prepare(): array
@@ -52,6 +69,7 @@ class BulkWriter
                 $fields = array_keys($model->attributesToArray());
             $bindigs = array_merge($bindigs, array_values($model->attributesToArray()));
         }
+
         $sql = 'INSERT INTO `'.$model->getTable().'` (`'.implode('`, `', $fields).'`) values ';
                                         
         $questions = array_pad([], count($fields), '?');
@@ -59,12 +77,15 @@ class BulkWriter
 
         $sql .= implode(',', array_pad([], count($this->models), $placements));
 
-        $sql .= ' ON DUPLICATE KEY UPDATE ';
         $updates = [];
         foreach($fields as $field)
             if($field != 'id')
                 $updates[] = '`'.$field.'`=VALUES(`'.$field.'`)'; 
-        $sql .= implode(', ', $updates);
+        if($updates)
+        {
+            $sql .= ' ON DUPLICATE KEY UPDATE ';
+            $sql .= implode(', ', $updates);
+        }
         return [$sql, $bindigs];
     }
 }
