@@ -47,18 +47,7 @@ class BulkWriter
 
     protected function execute(string $sql, array $bindigs): void
     {
-        //DB::statement($sql, $bindigs);
-        $pdo = DB::connection()->getPdo();
-        if(!isset($this->prepared[$sql]))
-        {
-            $sttm = $pdo->prepare($sql);
-            if(!$sttm)
-                throw new \Exception($pdo->errorInfo());
-            $this->prepared[$sql] = $sttm;
-        }
-        $sttm = $this->prepared[$sql];
-        if(!$sttm->execute($bindigs))
-            throw new \Exception($sttm->errorInfo());
+        DB::statement($sql, $bindigs);
     }
 
     public function prepare(): array

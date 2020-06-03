@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use App\Xml\ProductParser;
+use App\Xml\OfferParser;
 
 class ImportReaderTest extends TestCase
 {
@@ -11,10 +12,7 @@ class ImportReaderTest extends TestCase
 
     public function testProductParser()
     {
-        $xml = new \XMLReader;
-        $xml->open(base_path('/tests/data/import.xml'));
-
-        $parser = new ProductParser($xml);
+        $parser = new ProductParser(base_path('/tests/data/import.xml'));
         $products = [];
         foreach($parser->products() as $product)
             $products[] = $product;
@@ -31,5 +29,23 @@ class ImportReaderTest extends TestCase
         $this->assertEquals(408784, $product->id);
         $this->assertEquals(2.745, $product->weight);
         $this->assertEquals('CUMMINS-ISBe6.7 (ISDe6.7)-Двигатели', $product->usage);
+    }
+
+    public function testOfferParser()
+    {
+        $parser = new OfferParser(base_path('/tests/data/offer.xml'));
+        $this->assertEquals($parser->city(), 'Санкт-Петербург');
+        $city_id = 100;
+        $parser->setCityId($city_id);
+        $offers = [];
+        foreach($parser->offers() as $offer)
+            $offers[] = $offer;
+        $offer = array_shift($offers);
+        $this->assertEquals($offer->city_id, $city_id);
+        $this->assertEquals($offer->product_id, 408808);
+        $this->assertEquals($offer->quantity, 25);
+
+        $offer = array_shift($offers);
+        $this->assertEquals($offer->product_id, 305549);
     }
 }

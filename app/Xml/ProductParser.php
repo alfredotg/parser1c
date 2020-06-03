@@ -4,32 +4,19 @@ namespace App\Xml;
 
 use XMLReader;
 
-class ProductParser
+class ProductParser extends Parser
 {
-    protected XMLReader $xml;
-
-    function __construct(XMLReader $xml)
-    {
-        $this->xml = $xml;
-    }
-
     function products(): iterable
     {
-        while($this->xml->name != "Товар" && $this->xml->read()) {
-            continue;
-        };
+        if(!$this->findNode("Товар"))
+            return;
 
         do {
-            yield $this->parseProduct($this->xml->expand());
+            yield $this->parse($this->xml->expand());
         } while($this->xml->next('Товар'));
     }
 
-    protected function firstContent(\DomElement $xml, string $name): string
-    {
-        return $xml->getElementsByTagName($name)->item(0)->textContent;
-    } 
-
-    protected function parseProduct(\DomElement $xml): Product
+    protected function parse(\DomElement $xml): Product
     {
         $product = new Product;
         $product->id = (int) $this->firstContent($xml, 'Код');
