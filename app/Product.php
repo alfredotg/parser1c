@@ -13,8 +13,8 @@ class Product extends Model
         'usage',
     ];
 
-    //function folder()
-    //{
-    //    return $this->belongsTo('App\Folder');
-    //}    
+    public function offers()
+    {
+        return $this->hasMany('App\Offer');
+    }
 }

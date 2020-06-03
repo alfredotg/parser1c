@@ -14,4 +14,9 @@ class Offer extends Model
         'quantity',
         'price',
     ];
+
+    public function city()
+    {
+        return $this->belongsTo('App\City');
+    }
 }
