@@ -46,7 +46,7 @@ class ParseProducts extends Command
         $xml->open($file);
         $parser = new ProductParser($xml);
 
-        $writer = new BulkWriter(100);
+        $writer = new BulkWriter(1000);
         $writer->on_save = function(int $count) {
             printf("%d items saved\n", $count);
         };
