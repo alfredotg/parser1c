@@ -25,10 +25,10 @@ class InsertTest extends TestCase
         $product2 = clone($product);
         $product2->id = 12;
 
-        $writer = new BulkWriter(2);
-        $writer->add($product);
+        $writer = new BulkWriter(2, $product);
+        $writer->add($product->attributesToArray());
         $this->assertEquals(1, $writer->size());
-        $writer->add($product2);
+        $writer->add($product2->attributesToArray());
         $this->assertEquals(0, $writer->size());
 
         $loaded = Product::findOrFail($product->id);

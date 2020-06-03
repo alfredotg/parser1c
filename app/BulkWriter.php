@@ -9,38 +9,40 @@ class BulkWriter
 {
     public $on_save;
     protected int $chunk_size;
-    protected array $models = [];
+    protected Model $model;
+    protected array $rows = [];
     protected array $prepared = [];
 
-    function __construct(int $chunk_size)
+    function __construct(int $chunk_size, Model $model)
     {
+        $this->model = $model;
         $this->chunk_size = $chunk_size;
     }
 
     public function size(): int
     {
-        return count($this->models);
+        return count($this->rows);
     }
 
-    public function add(Model $model)
+    public function add(array $row): void
     {
-        $this->models[] = $model;
-        if(count($this->models) >= $this->chunk_size)
+        $this->rows[] = $row;
+        if(count($this->rows) >= $this->chunk_size)
             $this->save();
     }
 
     public function save(): void
     {
-        if(count($this->models) == 0)
+        if(count($this->rows) == 0)
             return;
         list($sql, $bindigs) = $this->prepare();
         $this->execute($sql, $bindigs);
         if($this->on_save !== null)
         {
             $on_save = $this->on_save;
-            $on_save(count($this->models));
+            $on_save(count($this->rows));
         }
-        $this->models = [];
+        $this->rows = [];
     }
 
     protected function execute(string $sql, array $bindigs): void
@@ -63,19 +65,19 @@ class BulkWriter
     {
         $bindigs = [];
         $fields = false;
-        foreach($this->models as $model)
+        foreach($this->rows as $row)
         {
             if(!$fields)
-                $fields = array_keys($model->attributesToArray());
-            $bindigs = array_merge($bindigs, array_values($model->attributesToArray()));
+                $fields = array_keys($row);
+            $bindigs = array_merge($bindigs, array_values($row));
         }
 
-        $sql = 'INSERT INTO `'.$model->getTable().'` (`'.implode('`, `', $fields).'`) values ';
+        $sql = 'INSERT INTO `'.$this->model->getTable().'` (`'.implode('`, `', $fields).'`) values ';
                                         
         $questions = array_pad([], count($fields), '?');
         $placements = '('.implode(', ', $questions).')';
 
-        $sql .= implode(',', array_pad([], count($this->models), $placements));
+        $sql .= implode(',', array_pad([], $this->size(), $placements));
 
         $updates = [];
         foreach($fields as $field)

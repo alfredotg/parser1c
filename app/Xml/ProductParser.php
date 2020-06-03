@@ -2,9 +2,7 @@
 
 namespace App\Xml;
 
-use SimpleXMLElement;
 use XMLReader;
-use App\Product;
 
 class ProductParser
 {
@@ -22,10 +20,8 @@ class ProductParser
         };
 
         do {
-            if($this->xml->name != "Товар")
-                continue;
             yield $this->parseProduct($this->xml->expand());
-        } while($this->xml->next());
+        } while($this->xml->next('Товар'));
     }
 
     protected function firstContent(\DomElement $xml, string $name): string
@@ -35,10 +31,10 @@ class ProductParser
 
     protected function parseProduct(\DomElement $xml): Product
     {
-        $product = new Product();
+        $product = new Product;
         $product->id = (int) $this->firstContent($xml, 'Код');
         $product->name = strval($this->firstContent($xml, 'Наименование'));
-        $product->weight = floatval($this->firstContent($xml, 'Вес'));
+        $product->weight = $this->firstContent($xml, 'Вес');
         $usages = [];
         foreach($xml->getElementsByTagName('Взаимозаменяемости') as $els)
         {
