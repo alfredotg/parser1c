@@ -8,7 +8,7 @@ class Parse extends Command
 {
     use MultiProc;
 
-    const MAX_PROCS = 4;
+    const MAX_PROCS = 8;
 
     /**
      * The name and signature of the console command.
