@@ -8,9 +8,9 @@ use App\Product;
 
 class ProductController extends Controller
 {
-    public function index(Request $request) 
+    public function index(Request $request)
     {
-        $products = Product::with(['offers.city'])->paginate(20);
+        $products = Product::with(['offers.city'])->orderBy('id', 'DESC')->paginate(20);
         return view('products', ['products' => $products]);
     }
 }

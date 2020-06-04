@@ -4,53 +4,71 @@ namespace App\Console\Commands;
 
 trait MultiProc
 {
+    protected function resolveMaxProcs(int $proc_limit): int
+    {
+        $max_procs = (int) system('nproc --all', $ret);
+        if ($ret != 0 || $max_procs > $proc_limit) {
+            $max_procs = $proc_limit;
+        }
+        return $max_procs;
+    }
+
     protected function fork(array $files, int $proc_limit, string $command): bool
     {
         $pids = [];
-        $statues = [];
-        $max_procs = (int) system('nproc --all', $ret);
-        if($ret != 0 || $max_procs > $proc_limit)
-            $max_procs = $proc_limit;
+        $statuses = [];
+        $max_procs = $this->resolveMaxProcs($proc_limit);
+
         printf("Run %s in %d processes\n", $command, $max_procs);
-        foreach($files as $file)
-        {
+
+        foreach ($files as $file) {
             $pid = pcntl_fork();
-            if($pid == -1)
+            if ($pid == -1) {
                 throw new \Exception('Could not fork');
-            if(!$pid)
-            {
+            }
+            if (!$pid) {
                 $this->call($command, ['file' => $file]);
-                exit();;
+                exit();
             }
             $pids[$pid] = $file;
-            if(count($pids) >= $max_procs)
-                $this->wait($pids, $statues, false);
+            if (count($pids) >= $max_procs) {
+                $this->waitFirst($pids, $statuses);
+            }
         }
-        $this->wait($pids, $statues, true);
+        $this->waitAll($pids, $statuses);
 
         $success = true;
-        foreach($statues as $file => $status)
-        {
-            if($status != 0)
-            {
+        foreach ($statuses as $file => $status) {
+            if ($status != 0) {
                 printf("%s - FAILED\n", $file);
                 $success = false;
-            }
-            else
+            } else {
                 printf("%s - OK\n", $file);
+            }
         }
         return $success;
     }
 
-    protected function wait(array &$pids, array &$statues, bool $all): void
+    protected function waitAll(array &$pids, array &$statuses): void
     {
-        foreach($pids as $pid => $file)
-        {
-            pcntl_waitpid($pid, $status);
-            $statues[$file] = $status;
-            unset($pids[$pid]);
-            if(!$all)
+        $this->wait($pids, $statuses, count($pids));
+    }
+
+    protected function waitFirst(array &$pids, array &$statuses): void
+    {
+        $this->wait($pids, $statuses, 1);
+    }
+
+    protected function wait(array &$pids, array &$statuses, int $count): void
+    {
+        foreach ($pids as $pid => $file) {
+            if ($count <= 0) {
                 return;
+            }
+            $count--;
+            pcntl_waitpid($pid, $status);
+            $statuses[$file] = $status;
+            unset($pids[$pid]);
         }
     }
 }
