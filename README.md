@@ -1,8 +1,25 @@
 
-1. cp .env.example .env
-2. Настроить соединение с БД в ./.env
-3. composer install
-4. php artisan migrate
-5. php artisan parse /data/xml/
-6. php artisan serve
-7. http://127.0.0.1:8000
+
+1. Скопируйти файл настроек из примера
+```
+cp .env.example .env
+```
+
+2. Настройте соединение с БД в ./.env
+3. Установите зависимости
+```
+composer install
+```
+4. Запустите миграции
+```
+php artisan migrate
+```
+5. Запустите парсинг файлов (/data/xml - путь до директории с xml файлами)
+```
+php artisan parse /data/xml/
+```
+6. Запустите веб-сервер
+```
+php artisan serve
+```
+7. Откройте в браузере http://127.0.0.1:8000
