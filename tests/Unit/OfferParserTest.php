@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Tests\TestCase;
 use App\Xml\OfferParser;
+use App\Offer;
 
 class OfferParserTest extends TestCase
 {
@@ -14,8 +15,9 @@ class OfferParserTest extends TestCase
         $city_id = 100;
         $parser->setCityId($city_id);
         $offers = [];
-        foreach($parser->offers() as $offer)
+        foreach ($parser->offers() as $offer) {
             $offers[] = $offer;
+        }
         $offer = array_shift($offers);
         $this->assertEquals($offer->city_id, $city_id);
         $this->assertEquals($offer->product_id, 408808);

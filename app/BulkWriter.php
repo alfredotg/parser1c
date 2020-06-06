@@ -55,7 +55,7 @@ class BulkWriter
         $bindigs = [];
         $fields = false;
         foreach ($this->rows as $row) {
-            if (!$fields) {
+            if (false === $fields) {
                 $fields = array_keys($row);
             }
             $bindigs = array_merge($bindigs, array_values($row));
@@ -75,7 +75,7 @@ class BulkWriter
 
         $updates = [];
         foreach ($fields as $field) {
-            if ($field != 'id') {
+            if ($field != $this->model->getKeyName()) {
                 $updates[] = '`'.$field.'`=VALUES(`'.$field.'`)';
             }
         }

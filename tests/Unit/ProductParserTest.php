@@ -13,14 +13,16 @@ class ProductParserTest extends TestCase
     {
         $parser = new ProductParser(base_path('/tests/data/import.xml'));
         $products = [];
-        foreach($parser->products() as $product)
+        foreach ($parser->products() as $product) {
             $products[] = $product;
+        }
 
         $product = array_shift($products);
         $this->assertEquals(420575, $product->id);
         $this->assertEquals(
-            'Поддон картера двиг. (ISF3.8) R {ПАЗ} V масла=6.5-8.0L, 1 масл.канал, без отверстия для подогревателя, 5257821 "CM"', 
-            $product->name);
+            'Поддон картера двиг. (ISF3.8) R {ПАЗ} V масла=6.5-8.0L, 1 масл.канал, без отверстия для подогревателя, 5257821 "CM"',
+            $product->name
+        );
         $this->assertEquals(0, $product->weight);
         $this->assertEquals('', $product->usage);
 
